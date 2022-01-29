@@ -14,7 +14,7 @@ public class GameFrame extends JFrame{
 	
 	private static final long serialVersionUID = -5001146727791405693L;
 	
-	public static final int WIDTH = 546;
+	public static final int WIDTH = 556;
 	public static final int HEIGHT = 670;
 	
 	/**

@@ -48,7 +48,9 @@ public class GameEngine {
 					gameBridge.movePacMan(PacManComponent.LEFT);
 					break;
 				  case KeyEvent.VK_SPACE:
-					gameBridge.startNewGame();
+					if (gameBridge.isPacManDead()) {
+						gameBridge.startNewGame();
+					}
 				    break;
 				}
 			}
