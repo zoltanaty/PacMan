@@ -38,7 +38,7 @@ public class PacManComponent extends Rectangle {
 	 * the possible states of PacMan
 	 */
 	public static final int LIVE = 1;
-	public static final int MORTAL = 2;
+	public static final int DYING = 2;
 	public static final int DEAD = 3;
 
 	/**
@@ -105,12 +105,12 @@ public class PacManComponent extends Rectangle {
 		downRightPoint = new Point();
 		centerPoint = new Point();
 
-		pacManInitialPosition = new Point(13, 17);
+		setPacManInitialPosition(new Point(13, 17));
 
 		this.width = WIDTH;
 		this.height = HEIGHT;
 
-		speed = 1;
+		setSpeed(0);
 
 		direction = UP;
 		lastDirection = UP;
@@ -158,14 +158,6 @@ public class PacManComponent extends Rectangle {
 		centerPoint.y = y + height / 2;
 
 		return centerPoint;
-	}
-
-	public void setPacManSpeed(int speed) {
-		this.speed = speed;
-	}
-
-	public int getPacManSpeed() {
-		return speed;
 	}
 
 	public void setDirection(int direction, boolean status) {
@@ -241,22 +233,22 @@ public class PacManComponent extends Rectangle {
 		if (isLive()) {
 			switch (direction) {
 			case UP: {
-				y -= speed;
+				y -= getSpeed();
 			}
 				break;
 
 			case DOWN: {
-				y += speed;
+				y += getSpeed();
 			}
 				break;
 
 			case RIGHT: {
-				x += speed;
+				x += getSpeed();
 			}
 				break;
 
 			case LEFT: {
-				x -= speed;
+				x -= getSpeed();
 			}
 				break;
 			}
@@ -276,7 +268,7 @@ public class PacManComponent extends Rectangle {
 					mortalImageIndex = mortalImageIndex + 1;
 				} else {
 					setState(DEAD);
-					initPacMan(this);
+					resetPacMan();
 				}
 			}
 		}
@@ -286,7 +278,7 @@ public class PacManComponent extends Rectangle {
 		return direction + moveImageIndex;
 	}
 
-	public int getMortalImageIndex() {
+	public int getDyingImageIndex() {
 		return mortalImageIndex;
 	}
 
@@ -300,9 +292,10 @@ public class PacManComponent extends Rectangle {
 			left = false;
 
 			direction = RIGHT;
+			speed = 0;
 			lastDirection = RIGHT;
 			moveImageIndex = 3;
-		} else if (state == MORTAL) {
+		} else if (state == DYING) {
 			mortalTimer.initTimer();
 			mortalImageIndex = direction;
 		}
@@ -313,21 +306,33 @@ public class PacManComponent extends Rectangle {
 	}
 
 	public boolean isMortal() {
-		return state == MORTAL;
+		return state == DYING;
 	}
 
 	public boolean isDead() {
 		return state == DEAD;
 	}
+	
+	private void resetPacMan() {
+		this.setLocation(Tile.WIDTH * getPacManInitialPosition().x + (Tile.WIDTH - PacManComponent.WIDTH / 2) / 2,
+				Tile.HEIGHT * getPacManInitialPosition().y + (Tile.HEIGHT - PacManComponent.HEIGHT / 2) / 2);
+		this.setState(PacManComponent.LIVE);
+	}
 
-	/**
-	 * Creates and initializes PacMan
-	 * @param pacMan
-	 */
-	public void initPacMan(PacManComponent pacMan) {
-		pacMan.setLocation(Tile.WIDTH * pacManInitialPosition.x + (Tile.WIDTH - PacManComponent.WIDTH / 2) / 2,
-				Tile.HEIGHT * pacManInitialPosition.y + (Tile.HEIGHT - PacManComponent.HEIGHT / 2) / 2);
-		pacMan.setState(PacManComponent.LIVE);
+	public Point getPacManInitialPosition() {
+		return pacManInitialPosition;
+	}
+
+	public void setPacManInitialPosition(Point pacManInitialPosition) {
+		this.pacManInitialPosition = pacManInitialPosition;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
 	}
 
 }

@@ -18,7 +18,7 @@ public class LevelLoader {
 	private int[][] levelMap;
 
 	public LevelLoader() {
-		levelMap = new int[TileField.HEIGHT][TileField.WIDTH];
+		setLevelMap(new int[TileField.HEIGHT][TileField.WIDTH]);
 	}
 
 	public void loadLevel() {
@@ -29,7 +29,7 @@ public class LevelLoader {
 
 			for (int i = 0; i < TileField.HEIGHT; i++) {
 				for (int j = 0; j < TileField.WIDTH; j++) {
-					levelMap[i][j] = fileReader.nextInt();
+					getLevelMap()[i][j] = fileReader.nextInt();
 				}
 			}
 		} catch (Exception e) {
@@ -39,11 +39,12 @@ public class LevelLoader {
 		}
 	}
 
-	public void initTileField(TileField tileField) {
-		for (int i = 0; i < TileField.HEIGHT; i++) {
-			for (int j = 0; j < TileField.WIDTH; j++) {
-				tileField.setTileID(levelMap[i][j], i, j);
-			}
-		}
+	public int[][] getLevelMap() {
+		return levelMap;
 	}
+
+	public void setLevelMap(int[][] levelMap) {
+		this.levelMap = levelMap;
+	}
+	
 }

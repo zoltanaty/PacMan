@@ -50,32 +50,4 @@ public class Food extends Rectangle {
 		return status == ACTIVE;
 	}
 
-	/**
-	 * Initializes the food, and fills the field with them
-	 * 
-	 * @param foodList
-	 * @param tileField
-	 */
-	public void initFood(LinkedList<Food> foodList, TileField tileField) {
-		foodList.clear();
-
-		for (int i = 0; i < tileField.getFieldTile().length; i++) {
-			for (int j = 0; j < tileField.getFieldTile()[i].length - 1; j++) {
-				if (((tileField.getFieldTile()[i][j].getTileID() == Tile.ROAD
-						|| tileField.getFieldTile()[i][j].getTileID() == Tile.CORNER)
-						&& (tileField.getFieldTile()[i + 1][j].getTileID() == Tile.ROAD
-								|| tileField.getFieldTile()[i + 1][j].getTileID() == Tile.CORNER)
-						&& (tileField.getFieldTile()[i][j + 1].getTileID() == Tile.ROAD
-								|| tileField.getFieldTile()[i][j + 1].getTileID() == Tile.CORNER)
-						&& (tileField.getFieldTile()[i + 1][j + 1].getTileID() == Tile.ROAD
-								|| tileField.getFieldTile()[i + 1][j + 1].getTileID() == Tile.CORNER))) {
-					Food food = new Food();
-					food.setFoodType(Food.SMALL);
-					food.setLocation(tileField.getFieldTile()[i][j].getLocation());
-					food.setStatus(Food.ACTIVE);
-					foodList.add(food);
-				}
-			}
-		}
-	}
 }

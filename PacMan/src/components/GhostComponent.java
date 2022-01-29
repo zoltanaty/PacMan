@@ -120,9 +120,9 @@ public class GhostComponent extends Rectangle {
 		downLeftPoint = new Point();
 		downRightPoint = new Point();
 
-		ghostInitialPosition = new Point(x, y);
+		setGhostInitialPosition(new Point(x, y));
 
-		this.speed = 1;
+		this.setSpeed(0);
 
 		this.width = WIDTH;
 		this.height = HEIGHT;
@@ -163,7 +163,7 @@ public class GhostComponent extends Rectangle {
 	}
 
 	public int getGhostSpeed() {
-		return speed;
+		return getSpeed();
 	}
 
 	public void setGhostType(int ghostType) {
@@ -204,19 +204,19 @@ public class GhostComponent extends Rectangle {
 	public void move(int direction) {
 		switch (direction) {
 		case UP: {
-			y -= speed;
+			y -= getSpeed();
 		}
 			break;
 		case DOWN: {
-			y += speed;
+			y += getSpeed();
 		}
 			break;
 		case RIGHT: {
-			x += speed;
+			x += getSpeed();
 		}
 			break;
 		case LEFT: {
-			x -= speed;
+			x -= getSpeed();
 		}
 			break;
 		}
@@ -256,21 +256,19 @@ public class GhostComponent extends Rectangle {
 		return state == MORTAL;
 	}
 
-	/**
-	 * Creates and initializes the 4 Ghosts
-	 * 
-	 * @param ghosts
-	 * @param random
-	 */
-	public void initGhosts(LinkedList<GhostComponent> ghosts, Random random) {
-		ghosts.clear();
+	public Point getGhostInitialPosition() {
+		return ghostInitialPosition;
+	}
 
-		for (int i = 0; i < 4; i++) {
-			GhostComponent ghost = new GhostComponent(2 * i + 10, 14, random);
-			ghost.setGhostType(i);
-			ghost.setLocation(Tile.WIDTH * ghost.ghostInitialPosition.x + (Tile.WIDTH - GhostComponent.WIDTH / 2) / 2,
-					Tile.HEIGHT * ghost.ghostInitialPosition.y + (Tile.HEIGHT - GhostComponent.HEIGHT / 2) / 2);
-			ghosts.add(ghost);
-		}
+	public void setGhostInitialPosition(Point ghostInitialPosition) {
+		this.ghostInitialPosition = ghostInitialPosition;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
 	}
 }

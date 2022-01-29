@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.ImageIcon;
@@ -19,7 +20,8 @@ import components.TileField;
 import utils.LevelLoader;
 
 /**
- * Class responsible for the connection between the GameEngine and the GameComponents
+ * Class responsible for the connection between the GameEngine and the
+ * GameComponents
  * 
  * @author ZoltanMate
  */
@@ -27,24 +29,23 @@ public class GameBridge {
 
 	private LevelLoader levelLoader;
 	private TileField tileField;
-	private PacManComponent pacMan;
 	private Score score;
-
-	private GhostComponent ghost;
-	private LinkedList<GhostComponent> ghostList;
+	
+	private PacManComponent pacMan;
+	private int pacManPreviousDirection;
+	
+	private List<GhostComponent> ghostList;
 	private Iterator<GhostComponent> ghostIterator;
 
-	private Food food;
-	private LinkedList<Food> foodList;
+	private List<Food> foodList;
 	private Iterator<Food> foodIterator;
 
 	private Random random;
-	private int previousDirection;
 
 	private Image[] tileImages;
 
 	private Image[] pacManWalkImages;
-	private Image[] pacManMortalImages;
+	private Image[] pacManDyingImages;
 
 	private Image[][] ghostWalkImages;
 	private Image[][] ghostMortalImages;
@@ -52,37 +53,39 @@ public class GameBridge {
 	private Image[] foodImages;
 
 	private Image livesBgImage;
-	private Image[] livesImage;
+	private Image[] livesImages;
 	private Image gameOverImage;
 
 	public GameBridge() {
 		levelLoader = new LevelLoader();
 		tileField = new TileField();
-		pacMan = new PacManComponent();
-		score = new Score();
-
-		ghost = new GhostComponent();
-		ghostList = new LinkedList<GhostComponent>();
-
-		food = new Food();
 		foodList = new LinkedList<Food>();
-
+		pacMan = new PacManComponent();
+		ghostList = new LinkedList<GhostComponent>();
+		score = new Score();
 		random = new Random();
-
 		loadComponentsImages();
 	}
 
 	public void startNewGame() {
 		levelLoader.loadLevel();
-		levelLoader.initTileField(tileField);
-		food.initFood(foodList, tileField);
-		pacMan.initPacMan(pacMan);
-		ghost.initGhosts(ghostList, random);
+		initTileField();
+		initFood();
+		initPacMan();
+		initGhosts();
 	}
 
 	// ***************************************************************************************************************************
 	// --------------------------------------------------- TileField -----------------------------------------------------------
 	// ***************************************************************************************************************************
+
+	private void initTileField() {
+		for (int i = 0; i < TileField.HEIGHT; i++) {
+			for (int j = 0; j < TileField.WIDTH; j++) {
+				tileField.setTileID(levelLoader.getLevelMap()[i][j], i, j);
+			}
+		}
+	}
 
 	public void renderTileField(Graphics g) {
 		for (int i = 0; i < TileField.HEIGHT; i++) {
@@ -126,13 +129,13 @@ public class GameBridge {
 		g.drawString(score.getScore(), 105, 626);
 
 		if (score.getLives() == 3) {
-			g.drawImage(livesImage[3], 442, 600, null);
+			g.drawImage(livesImages[3], 442, 600, null);
 		} else if (score.getLives() == 2) {
-			g.drawImage(livesImage[2], 442, 600, null);
+			g.drawImage(livesImages[2], 442, 600, null);
 		} else if (score.getLives() == 1) {
-			g.drawImage(livesImage[1], 442, 600, null);
+			g.drawImage(livesImages[1], 442, 600, null);
 		} else if (score.getLives() == 0) {
-			g.drawImage(livesImage[0], 442, 600, null);
+			g.drawImage(livesImages[0], 442, 600, null);
 			g.drawImage(gameOverImage, 190, 600, null);
 		}
 	}
@@ -140,6 +143,26 @@ public class GameBridge {
 	// ***************************************************************************************************************************
 	// --------------------------------------------------- PacMan --------------------------------------------------------------
 	// ***************************************************************************************************************************
+
+	/**
+	 * Creates and initializes PacMan
+	 * 
+	 * @param pacMan
+	 */
+	private void initPacMan() {
+		pacMan.setLocation(
+				Tile.WIDTH * pacMan.getPacManInitialPosition().x + (Tile.WIDTH - PacManComponent.WIDTH / 2) / 2,
+				Tile.HEIGHT * pacMan.getPacManInitialPosition().y + (Tile.HEIGHT - PacManComponent.HEIGHT / 2) / 2);
+		pacMan.setState(PacManComponent.LIVE);
+	}
+	
+	public boolean isPacManMoving() {
+		return pacMan.getSpeed() > 0;
+	}
+
+	public void startPacManMovement() {
+		pacMan.setSpeed(1);
+	}
 
 	public void movePacMan(int direction) {
 		pacMan.setDirection(direction, true);
@@ -180,53 +203,53 @@ public class GameBridge {
 			if (pacMan.isDirectionSetTo(PacManComponent.UP) && isPossibleToMoveUp(pacMan)) {
 				pacMan.move(PacManComponent.UP);
 
-				previousDirection = PacManComponent.UP;
+				pacManPreviousDirection = PacManComponent.UP;
 				clearUnnecessaryDirections();
 			} else if (pacMan.isDirectionSetTo(PacManComponent.RIGHT) && isPossibleToMoveRight(pacMan)) {
 				pacMan.move(PacManComponent.RIGHT);
 
-				previousDirection = PacManComponent.RIGHT;
+				pacManPreviousDirection = PacManComponent.RIGHT;
 				clearUnnecessaryDirections();
 			} else if (pacMan.isDirectionSetTo(PacManComponent.DOWN) && isPossibleToMoveDown(pacMan)) {
 				pacMan.move(PacManComponent.DOWN);
 
-				previousDirection = PacManComponent.DOWN;
+				pacManPreviousDirection = PacManComponent.DOWN;
 				clearUnnecessaryDirections();
 			} else if (pacMan.isDirectionSetTo(PacManComponent.LEFT) && isPossibleToMoveLeft(pacMan)) {
 				pacMan.move(PacManComponent.LEFT);
 
-				previousDirection = PacManComponent.LEFT;
+				pacManPreviousDirection = PacManComponent.LEFT;
 				clearUnnecessaryDirections();
 			} else {
-				switch (previousDirection) {
+				switch (pacManPreviousDirection) {
 				case PacManComponent.UP: {
 					if (isPossibleToMoveUp(pacMan)) {
-						if (previousDirection != -1) {
-							pacMan.move(previousDirection);
+						if (pacManPreviousDirection != -1) {
+							pacMan.move(pacManPreviousDirection);
 						}
 					}
 				}
 					break;
 				case PacManComponent.RIGHT: {
 					if (isPossibleToMoveRight(pacMan)) {
-						if (previousDirection != -1) {
-							pacMan.move(previousDirection);
+						if (pacManPreviousDirection != -1) {
+							pacMan.move(pacManPreviousDirection);
 						}
 					}
 				}
 					break;
 				case PacManComponent.DOWN: {
 					if (isPossibleToMoveDown(pacMan)) {
-						if (previousDirection != -1) {
-							pacMan.move(previousDirection);
+						if (pacManPreviousDirection != -1) {
+							pacMan.move(pacManPreviousDirection);
 						}
 					}
 				}
 					break;
 				case PacManComponent.LEFT: {
 					if (isPossibleToMoveLeft(pacMan)) {
-						if (previousDirection != -1) {
-							pacMan.move(previousDirection);
+						if (pacManPreviousDirection != -1) {
+							pacMan.move(pacManPreviousDirection);
 						}
 					}
 				}
@@ -241,18 +264,18 @@ public class GameBridge {
 		}
 	}
 
-
 	public void renderPacMan(Graphics g) {
 		if (pacMan.isLive()) {
 			g.drawImage(pacManWalkImages[pacMan.getMoveImageIndex()], (int) pacMan.getX(), (int) pacMan.getY(), null);
 		} else if (pacMan.isMortal()) {
-			g.drawImage(pacManMortalImages[pacMan.getMortalImageIndex()], (int) pacMan.getX(), (int) pacMan.getY(), null);
+			g.drawImage(pacManDyingImages[pacMan.getDyingImageIndex()], (int) pacMan.getX(), (int) pacMan.getY(),
+					null);
 		}
 	}
 
 	private boolean isPossibleToMoveUp(PacManComponent pacMan) {
 		int nextUpLeftX = pacMan.getUpLeftPoint().x / Tile.WIDTH;
-		int nextUpLeftY = (pacMan.getUpLeftPoint().y - pacMan.getPacManSpeed()) / Tile.HEIGHT;
+		int nextUpLeftY = (pacMan.getUpLeftPoint().y - pacMan.getSpeed()) / Tile.HEIGHT;
 		int nextUpRightX = pacMan.getUpRightPoint().x / Tile.WIDTH;
 
 		for (int i = nextUpLeftX; i <= nextUpRightX; i++) {
@@ -264,7 +287,7 @@ public class GameBridge {
 	}
 
 	private boolean isPossibleToMoveRight(PacManComponent pacMan) {
-		int nextUpRightX = (pacMan.getUpRightPoint().x + pacMan.getPacManSpeed()) / Tile.WIDTH;
+		int nextUpRightX = (pacMan.getUpRightPoint().x + pacMan.getSpeed()) / Tile.WIDTH;
 		int nextUpRightY = pacMan.getUpRightPoint().y / Tile.HEIGHT;
 		int nextDownRightY = pacMan.getDownRightPoint().y / Tile.HEIGHT;
 
@@ -278,7 +301,7 @@ public class GameBridge {
 
 	private boolean isPossibleToMoveDown(PacManComponent pacMan) {
 		int nextDownLeftX = pacMan.getDownLeftPoint().x / Tile.WIDTH;
-		int nextDownLeftY = (pacMan.getDownLeftPoint().y + pacMan.getPacManSpeed()) / Tile.HEIGHT;
+		int nextDownLeftY = (pacMan.getDownLeftPoint().y + pacMan.getSpeed()) / Tile.HEIGHT;
 		int nextDownRightX = pacMan.getDownRightPoint().x / Tile.WIDTH;
 
 		for (int i = nextDownLeftX; i <= nextDownRightX; i++) {
@@ -290,7 +313,7 @@ public class GameBridge {
 	}
 
 	private boolean isPossibleToMoveLeft(PacManComponent pacMan) {
-		int nextUpLeftX = (pacMan.getUpLeftPoint().x - pacMan.getPacManSpeed()) / Tile.WIDTH;
+		int nextUpLeftX = (pacMan.getUpLeftPoint().x - pacMan.getSpeed()) / Tile.WIDTH;
 		int nextUpLeftY = pacMan.getUpLeftPoint().y / Tile.HEIGHT;
 		int nextDownLeftY = pacMan.getDownLeftPoint().y / Tile.HEIGHT;
 
@@ -307,12 +330,44 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- GHOSTS
-	// --------------------------------------------------------------
+	// --------------------------------------------------- GHOSTS --------------------------------------------------------------
 	// ***************************************************************************************************************************
 
-	// a szellemek frissitese, valamint pacMan kovetesenek implementalasa
-	// Ha valamelyk szellem utkozik pacMannel, pacman allapota atvalt MORTAL-ra
+	/**
+	 * Creates and initializes the 4 Ghosts
+	 * 
+	 * @param ghosts
+	 * @param random
+	 */
+	private void initGhosts() {
+		ghostList.clear();
+
+		for (int i = 0; i < 4; i++) {
+			GhostComponent ghost = new GhostComponent(2 * i + 10, 14, random);
+			ghost.setGhostType(i);
+			ghost.setLocation(
+					Tile.WIDTH * ghost.getGhostInitialPosition().x + (Tile.WIDTH - GhostComponent.WIDTH / 2) / 2,
+					Tile.HEIGHT * ghost.getGhostInitialPosition().y + (Tile.HEIGHT - GhostComponent.HEIGHT / 2) / 2);
+			ghostList.add(ghost);
+		}
+	}
+	
+	public boolean areGhostsMoving() {
+		for (int i = 0; i < 4; i++) {
+			if (ghostList.get(i).getSpeed() == 0) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	public void startGhostsMovement() {
+		for (int i = 0; i < 4; i++) {
+			ghostList.get(i).setSpeed(1);
+		}
+	}
+
 	public void updateGhosts() {
 		ghostIterator = ghostList.listIterator();
 
@@ -339,9 +394,9 @@ public class GameBridge {
 
 			if (pacMan.isLive() && ghost.contains(pacMan.getCenterPoint())) {
 				if (score.getLives() > 1) {
-					pacMan.setState(PacManComponent.MORTAL);
+					pacMan.setState(PacManComponent.DYING);
 					score.decLives();
-					ghost.initGhosts(ghostList, random);
+					initGhosts();
 					break;
 				} else {
 					pacMan.setState(PacManComponent.DEAD);
@@ -468,6 +523,35 @@ public class GameBridge {
 	// --------------------------------------------------- FOOD --------------------------------------------------------------
 	// ***************************************************************************************************************************
 
+	/**
+	 * Initializes the food, and fills the field with them
+	 * 
+	 * @param foodList
+	 * @param tileField
+	 */
+	private void initFood() {
+		foodList.clear();
+
+		for (int i = 0; i < tileField.getFieldTile().length; i++) {
+			for (int j = 0; j < tileField.getFieldTile()[i].length - 1; j++) {
+				if (((tileField.getFieldTile()[i][j].getTileID() == Tile.ROAD
+						|| tileField.getFieldTile()[i][j].getTileID() == Tile.CORNER)
+						&& (tileField.getFieldTile()[i + 1][j].getTileID() == Tile.ROAD
+								|| tileField.getFieldTile()[i + 1][j].getTileID() == Tile.CORNER)
+						&& (tileField.getFieldTile()[i][j + 1].getTileID() == Tile.ROAD
+								|| tileField.getFieldTile()[i][j + 1].getTileID() == Tile.CORNER)
+						&& (tileField.getFieldTile()[i + 1][j + 1].getTileID() == Tile.ROAD
+								|| tileField.getFieldTile()[i + 1][j + 1].getTileID() == Tile.CORNER))) {
+					Food food = new Food();
+					food.setFoodType(Food.SMALL);
+					food.setLocation(tileField.getFieldTile()[i][j].getLocation());
+					food.setStatus(Food.ACTIVE);
+					foodList.add(food);
+				}
+			}
+		}
+	}
+
 	public void updateFood() {
 		foodIterator = foodList.listIterator();
 
@@ -518,23 +602,23 @@ public class GameBridge {
 		pacManWalkImages[14] = new ImageIcon("resources/images/pacman_left_2.png").getImage();
 		pacManWalkImages[15] = new ImageIcon("resources/images/pacman_left_3.png").getImage();
 
-		pacManMortalImages = new Image[16];
-		pacManMortalImages[0] = new ImageIcon("resources/images/pacman_dead_up_0.png").getImage();
-		pacManMortalImages[1] = new ImageIcon("resources/images/pacman_dead_up_1.png").getImage();
-		pacManMortalImages[2] = new ImageIcon("resources/images/pacman_dead_up_2.png").getImage();
-		pacManMortalImages[3] = new ImageIcon("resources/images/pacman_dead_up_3.png").getImage();
-		pacManMortalImages[4] = new ImageIcon("resources/images/pacman_dead_down_0.png").getImage();
-		pacManMortalImages[5] = new ImageIcon("resources/images/pacman_dead_down_1.png").getImage();
-		pacManMortalImages[6] = new ImageIcon("resources/images/pacman_dead_down_2.png").getImage();
-		pacManMortalImages[7] = new ImageIcon("resources/images/pacman_dead_down_3.png").getImage();
-		pacManMortalImages[8] = new ImageIcon("resources/images/pacman_dead_right_0.png").getImage();
-		pacManMortalImages[9] = new ImageIcon("resources/images/pacman_dead_right_1.png").getImage();
-		pacManMortalImages[10] = new ImageIcon("resources/images/pacman_dead_right_2.png").getImage();
-		pacManMortalImages[11] = new ImageIcon("resources/images/pacman_dead_right_3.png").getImage();
-		pacManMortalImages[12] = new ImageIcon("resources/images/pacman_dead_left_0.png").getImage();
-		pacManMortalImages[13] = new ImageIcon("resources/images/pacman_dead_left_1.png").getImage();
-		pacManMortalImages[14] = new ImageIcon("resources/images/pacman_dead_left_2.png").getImage();
-		pacManMortalImages[15] = new ImageIcon("resources/images/pacman_dead_left_3.png").getImage();
+		pacManDyingImages = new Image[16];
+		pacManDyingImages[0] = new ImageIcon("resources/images/pacman_dead_up_0.png").getImage();
+		pacManDyingImages[1] = new ImageIcon("resources/images/pacman_dead_up_1.png").getImage();
+		pacManDyingImages[2] = new ImageIcon("resources/images/pacman_dead_up_2.png").getImage();
+		pacManDyingImages[3] = new ImageIcon("resources/images/pacman_dead_up_3.png").getImage();
+		pacManDyingImages[4] = new ImageIcon("resources/images/pacman_dead_down_0.png").getImage();
+		pacManDyingImages[5] = new ImageIcon("resources/images/pacman_dead_down_1.png").getImage();
+		pacManDyingImages[6] = new ImageIcon("resources/images/pacman_dead_down_2.png").getImage();
+		pacManDyingImages[7] = new ImageIcon("resources/images/pacman_dead_down_3.png").getImage();
+		pacManDyingImages[8] = new ImageIcon("resources/images/pacman_dead_right_0.png").getImage();
+		pacManDyingImages[9] = new ImageIcon("resources/images/pacman_dead_right_1.png").getImage();
+		pacManDyingImages[10] = new ImageIcon("resources/images/pacman_dead_right_2.png").getImage();
+		pacManDyingImages[11] = new ImageIcon("resources/images/pacman_dead_right_3.png").getImage();
+		pacManDyingImages[12] = new ImageIcon("resources/images/pacman_dead_left_0.png").getImage();
+		pacManDyingImages[13] = new ImageIcon("resources/images/pacman_dead_left_1.png").getImage();
+		pacManDyingImages[14] = new ImageIcon("resources/images/pacman_dead_left_2.png").getImage();
+		pacManDyingImages[15] = new ImageIcon("resources/images/pacman_dead_left_3.png").getImage();
 
 		ghostWalkImages = new Image[GhostComponent.GHOST_TYPES][GhostComponent.NUMBER_OF_DIRECTIONS
 				* GhostComponent.NUMBER_OF_SPRITES];
@@ -581,11 +665,11 @@ public class GameBridge {
 
 		livesBgImage = new ImageIcon("resources/images/score_panel.png").getImage();
 
-		livesImage = new Image[4];
-		livesImage[0] = new ImageIcon("resources/images/lives_0.png").getImage();
-		livesImage[1] = new ImageIcon("resources/images/lives_1.png").getImage();
-		livesImage[2] = new ImageIcon("resources/images/lives_2.png").getImage();
-		livesImage[3] = new ImageIcon("resources/images/lives_3.png").getImage();
+		livesImages = new Image[4];
+		livesImages[0] = new ImageIcon("resources/images/lives_0.png").getImage();
+		livesImages[1] = new ImageIcon("resources/images/lives_1.png").getImage();
+		livesImages[2] = new ImageIcon("resources/images/lives_2.png").getImage();
+		livesImages[3] = new ImageIcon("resources/images/lives_3.png").getImage();
 
 		gameOverImage = new ImageIcon("resources/images/game_over.png").getImage();
 	}
