@@ -30,10 +30,10 @@ public class GameBridge {
 	private LevelLoader levelLoader;
 	private TileField tileField;
 	private Score score;
-	
+
 	private PacManComponent pacMan;
 	private int pacManPreviousDirection;
-	
+
 	private List<GhostComponent> ghostList;
 	private Iterator<GhostComponent> ghostIterator;
 
@@ -68,6 +68,7 @@ public class GameBridge {
 	}
 
 	public void startNewGame() {
+		score = new Score();
 		levelLoader.loadLevel();
 		initTileField();
 		initFood();
@@ -76,7 +77,8 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- TileField -----------------------------------------------------------
+	// --------------------------------------------------- TileField
+	// -----------------------------------------------------------
 	// ***************************************************************************************************************************
 
 	private void initTileField() {
@@ -117,7 +119,8 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- Score/Lives -----------------------------------------------------------
+	// --------------------------------------------------- Score/Lives
+	// -----------------------------------------------------------
 	// ***************************************************************************************************************************
 
 	public void renderScore(Graphics g) {
@@ -141,7 +144,8 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- PacMan --------------------------------------------------------------
+	// --------------------------------------------------- PacMan
+	// --------------------------------------------------------------
 	// ***************************************************************************************************************************
 
 	/**
@@ -154,8 +158,9 @@ public class GameBridge {
 				Tile.WIDTH * pacMan.getPacManInitialPosition().x + (Tile.WIDTH - PacManComponent.WIDTH / 2) / 2,
 				Tile.HEIGHT * pacMan.getPacManInitialPosition().y + (Tile.HEIGHT - PacManComponent.HEIGHT / 2) / 2);
 		pacMan.setState(PacManComponent.LIVE);
+		pacMan.setSpeed(0);
 	}
-	
+
 	public boolean isPacManMoving() {
 		return pacMan.getSpeed() > 0;
 	}
@@ -198,7 +203,7 @@ public class GameBridge {
 	}
 
 	public void updatePacMan() {
-		if (pacMan.isLive()) {
+		if (pacMan.isAlive()) {
 
 			if (pacMan.isDirectionSetTo(PacManComponent.UP) && isPossibleToMoveUp(pacMan)) {
 				pacMan.move(PacManComponent.UP);
@@ -259,17 +264,16 @@ public class GameBridge {
 				clearUnnecessaryDirections();
 			}
 
-		} else if (pacMan.isMortal()) {
-			pacMan.updateMortalState();
+		} else if (pacMan.isDying()) {
+			pacMan.updateDyingState();
 		}
 	}
 
 	public void renderPacMan(Graphics g) {
-		if (pacMan.isLive()) {
+		if (pacMan.isAlive()) {
 			g.drawImage(pacManWalkImages[pacMan.getMoveImageIndex()], (int) pacMan.getX(), (int) pacMan.getY(), null);
-		} else if (pacMan.isMortal()) {
-			g.drawImage(pacManDyingImages[pacMan.getDyingImageIndex()], (int) pacMan.getX(), (int) pacMan.getY(),
-					null);
+		} else if (pacMan.isDying()) {
+			g.drawImage(pacManDyingImages[pacMan.getDyingImageIndex()], (int) pacMan.getX(), (int) pacMan.getY(), null);
 		}
 	}
 
@@ -330,7 +334,8 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- GHOSTS --------------------------------------------------------------
+	// --------------------------------------------------- GHOSTS
+	// --------------------------------------------------------------
 	// ***************************************************************************************************************************
 
 	/**
@@ -348,17 +353,18 @@ public class GameBridge {
 			ghost.setLocation(
 					Tile.WIDTH * ghost.getGhostInitialPosition().x + (Tile.WIDTH - GhostComponent.WIDTH / 2) / 2,
 					Tile.HEIGHT * ghost.getGhostInitialPosition().y + (Tile.HEIGHT - GhostComponent.HEIGHT / 2) / 2);
+			ghost.setSpeed(0);
 			ghostList.add(ghost);
 		}
 	}
-	
+
 	public boolean areGhostsMoving() {
 		for (int i = 0; i < 4; i++) {
 			if (ghostList.get(i).getSpeed() == 0) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -392,7 +398,7 @@ public class GameBridge {
 				}
 			}
 
-			if (pacMan.isLive() && ghost.contains(pacMan.getCenterPoint())) {
+			if (pacMan.isAlive() && ghost.contains(pacMan.getCenterPoint())) {
 				if (score.getLives() > 1) {
 					pacMan.setState(PacManComponent.DYING);
 					score.decLives();
@@ -460,7 +466,7 @@ public class GameBridge {
 			if (ghost.isLive()) {
 				g.drawImage(ghostWalkImages[ghost.getGhostType()][ghost.getMoveImageIndex() % 4], (int) ghost.getX(),
 						(int) ghost.getY(), null);
-			} else if (pacMan.isMortal()) {
+			} else if (pacMan.isDying()) {
 				g.drawImage(ghostMortalImages[ghost.getGhostType()][ghost.getMortalImageIndex() % 4],
 						(int) ghost.getX(), (int) ghost.getY(), null);
 			}
@@ -520,7 +526,8 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- FOOD --------------------------------------------------------------
+	// --------------------------------------------------- FOOD
+	// --------------------------------------------------------------
 	// ***************************************************************************************************************************
 
 	/**
@@ -576,7 +583,8 @@ public class GameBridge {
 	}
 
 	// ***************************************************************************************************************************
-	// --------------------------------------------------- IMAGES --------------------------------------------------------------
+	// --------------------------------------------------- IMAGES
+	// --------------------------------------------------------------
 	// ***************************************************************************************************************************
 
 	private void loadComponentsImages() {

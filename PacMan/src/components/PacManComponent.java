@@ -65,7 +65,7 @@ public class PacManComponent extends Rectangle {
 	/**
 	 * speed of PacMan
 	 */
-	private int speed;
+	private int speed = 0;
 
 	/**
 	 * state of PacMan
@@ -96,7 +96,7 @@ public class PacManComponent extends Rectangle {
 	 * imageTimers of PacMan
 	 */
 	private Timer imageTimer;
-	private Timer mortalTimer;
+	private Timer dyingTimer;
 
 	public PacManComponent() {
 		upLeftPoint = new Point();
@@ -110,8 +110,6 @@ public class PacManComponent extends Rectangle {
 		this.width = WIDTH;
 		this.height = HEIGHT;
 
-		setSpeed(0);
-
 		direction = UP;
 		lastDirection = UP;
 
@@ -121,7 +119,7 @@ public class PacManComponent extends Rectangle {
 		left = false;
 
 		imageTimer = new Timer(IMAGE_UPDATE_DELAY);
-		mortalTimer = new Timer(MORTAL_STATE_DELAY);
+		dyingTimer = new Timer(MORTAL_STATE_DELAY);
 	}
 
 	public Point getUpLeftPoint() {
@@ -161,7 +159,7 @@ public class PacManComponent extends Rectangle {
 	}
 
 	public void setDirection(int direction, boolean status) {
-		if (isLive()) {
+		if (isAlive()) {
 			switch (direction) {
 			case UP: {
 				up = status;
@@ -230,7 +228,7 @@ public class PacManComponent extends Rectangle {
 	 * @param direction
 	 */
 	public void move(int direction) {
-		if (isLive()) {
+		if (isAlive()) {
 			switch (direction) {
 			case UP: {
 				y -= getSpeed();
@@ -261,9 +259,9 @@ public class PacManComponent extends Rectangle {
 		}
 	}
 
-	public void updateMortalState() {
-		if (isMortal()) {
-			if (mortalTimer.isEllapsed()) {
+	public void updateDyingState() {
+		if (isDying()) {
+			if (dyingTimer.isEllapsed()) {
 				if (mortalImageIndex < (direction + NUMBER_OF_SPRITES - 1) && imageTimer.isEllapsed()) {
 					mortalImageIndex = mortalImageIndex + 1;
 				} else {
@@ -291,21 +289,21 @@ public class PacManComponent extends Rectangle {
 			down = false;
 			left = false;
 
-			direction = RIGHT;
 			speed = 0;
+			direction = RIGHT;
 			lastDirection = RIGHT;
 			moveImageIndex = 3;
 		} else if (state == DYING) {
-			mortalTimer.initTimer();
+			dyingTimer.initTimer();
 			mortalImageIndex = direction;
 		}
 	}
 
-	public boolean isLive() {
+	public boolean isAlive() {
 		return state == LIVE;
 	}
 
-	public boolean isMortal() {
+	public boolean isDying() {
 		return state == DYING;
 	}
 

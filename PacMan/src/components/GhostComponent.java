@@ -50,7 +50,7 @@ public class GhostComponent extends Rectangle {
 	 * Possible states of the Ghost
 	 */
 	public static final int LIVE = 1;
-	public static final int MORTAL = 2;
+	public static final int DYING = 2;
 
 	/**
 	 * Image timer delays
@@ -106,7 +106,7 @@ public class GhostComponent extends Rectangle {
 	/**
 	 * The speed of the ghost
 	 */
-	private int speed;
+	private int speed = 0;
 
 	/**
 	 * Default constructor
@@ -121,8 +121,6 @@ public class GhostComponent extends Rectangle {
 		downRightPoint = new Point();
 
 		setGhostInitialPosition(new Point(x, y));
-
-		this.setSpeed(0);
 
 		this.width = WIDTH;
 		this.height = HEIGHT;
@@ -242,7 +240,7 @@ public class GhostComponent extends Rectangle {
 
 			imageTimer.setDelay(IMAGE_UPDATE_DELAY);
 			imageTimer.initTimer();
-		} else if (state == MORTAL) {
+		} else if (state == DYING) {
 			mortalTimer.initTimer();
 			mortalImageIndex = 0;
 		}
@@ -252,8 +250,8 @@ public class GhostComponent extends Rectangle {
 		return state == LIVE;
 	}
 
-	public boolean isMortal() {
-		return state == MORTAL;
+	public boolean isDying() {
+		return state == DYING;
 	}
 
 	public Point getGhostInitialPosition() {

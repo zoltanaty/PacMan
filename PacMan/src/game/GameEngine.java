@@ -29,27 +29,27 @@ public class GameEngine {
 	private KeyAdapter createKeyHandler() {
 		return new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_UP) {
-					gameBridge.movePacMan(PacManComponent.UP);
-				}
-
-				if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-					gameBridge.movePacMan(PacManComponent.DOWN);
-				}
-
-				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-					gameBridge.movePacMan(PacManComponent.RIGHT);
-				}
-
-				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-					gameBridge.movePacMan(PacManComponent.LEFT);
+				if(!gameBridge.isPacManMoving() || !gameBridge.areGhostsMoving()) {
+					gameBridge.startPacManMovement();
+					gameBridge.startGhostsMovement();
 				}
 				
-				if(!gameBridge.isPacManMoving()) {
-					gameBridge.startPacManMovement();
-				}
-				if(!gameBridge.areGhostsMoving()) {
-					gameBridge.startGhostsMovement();
+				switch(e.getKeyCode()) {
+				  case KeyEvent.VK_UP:
+					gameBridge.movePacMan(PacManComponent.UP);
+				    break;
+				  case KeyEvent.VK_DOWN:
+					gameBridge.movePacMan(PacManComponent.DOWN);
+				    break;
+				  case KeyEvent.VK_RIGHT:
+					gameBridge.movePacMan(PacManComponent.RIGHT);
+					break;
+				  case KeyEvent.VK_LEFT:
+					gameBridge.movePacMan(PacManComponent.LEFT);
+					break;
+				  case KeyEvent.VK_SPACE:
+					gameBridge.startNewGame();
+				    break;
 				}
 			}
 		};
